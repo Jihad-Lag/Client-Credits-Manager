@@ -870,10 +870,9 @@ def modify_page():
             st.sidebar.warning(f"Credits subtracted: {round(amount, 2)}")
             json_message_sub_amount(name_client=selected_client,number_phone_client=number_phone_client,amount_credits=amount,updated_credit=updated_credits)
             save_changes_to_file()
+            st.sidebar.write(f"New credit balance: {round(updated_credits, 2)}")
             time.sleep(5)
             st.rerun()
-        
-        st.sidebar.write(f"New credit balance: {round(updated_credits, 2)}")
 
 
 # -=================================== Streamlit Dashboard ===================================-

@@ -1,10 +1,22 @@
 {
     "client_1": {
         "number_phone": "+212649991224",
-        "message": "Dear Jihad,\nWelcome to our credit system! Your account is now active with an initial credit of 1000.0.\nYou can start using your credits immediately. For any assistance, contact our support team.\nDate & Time: 2025-03-27 20:05:42\n"
+        "message": "Dear Jihad,\nWelcome to our credit system! Your account is now active with an initial credit of 1000.0.\nYou can start using your credits immediately. For any assistance, contact our support team.\nDate & Time: 2025-03-27 20:14:24\n"
     },
     "client_2": {
         "number_phone": "+212649991224",
-        "message": "Dear Jihad,\nWelcome to our credit system! Your account is now active with an initial credit of 0.1.\nYou can start using your credits immediately. For any assistance, contact our support team.\nDate & Time: 2025-03-27 20:12:35\n"
+        "message": "Dear Mr./Mrs. Jihad,\nWe inform you that your credit has been updated. An amount of 50.0 was added, raising your current total to 1050.0.\nPlease note this adjustment and respect agreed deadlines.\nFor any questions, feel free to contact us.\nDate & Time: 2025-03-27 20:14:32\n"
+    },
+    "client_3": {
+        "number_phone": "+212649991224",
+        "message": "Dear Mr./Mrs. Jihad,\nYour credit has been updated. An amount of 10.0 was deducted, reducing your current total to 1040.0.\nPlease review this adjustment and ensure compliance with agreed terms.\nContact us with any questions.\nDate & Time: 2025-03-27 20:14:44\n"
+    },
+    "client_4": {
+        "number_phone": "+212649991224",
+        "message": "Dear Mr./Mrs. Jihad,\nYour credit has been updated. An amount of 10.0 was deducted, reducing your current total to 1020.0.\nPlease review this adjustment and ensure compliance with agreed terms.\nContact us with any questions.\nDate & Time: 2025-03-27 20:16:24\n"
+    },
+    "client_5": {
+        "number_phone": "+212649991224",
+        "message": "Dear Mr./Mrs. Jihad,\nYour credit has been updated. An amount of 10.0 was deducted, reducing your current total to 1010.0.\nPlease review this adjustment and ensure compliance with agreed terms.\nContact us with any questions.\nDate & Time: 2025-03-27 20:16:45\n"
     }
 }
