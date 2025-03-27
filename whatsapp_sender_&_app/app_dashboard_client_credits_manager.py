@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import pywhatkit as kit
 import subprocess
+from documentation_page import show_documentation
 
 
 # -===== Settings Manager =====-
@@ -430,7 +431,7 @@ def cleanup_old_backups():
     """Keep only the 10 most recent backups"""
     try:
         backups = []
-        for ext in ['.csv', '.json']:
+        for ext in ['.csv']:
             backups.extend([os.path.join(st.session_state.backup_path, f) 
                           for f in os.listdir(st.session_state.backup_path) 
                           if f.endswith(ext)])
@@ -465,7 +466,7 @@ def restore_backup(backup_file):
         else:
             raise ValueError("Unsupported backup file format")
         
-        required_columns = ["Clients", "Phone_Numbers", "Credits", "Last_Updated", "Notes", "Status"]
+        required_columns = ["Clients", "Phone_Numbers", "Credits", "Last_Updated","Status"]
         if not all(col in backup_df.columns for col in required_columns):
             raise ValueError("Backup file is missing required columns")
         
@@ -930,6 +931,7 @@ navigation_bar = st.sidebar.selectbox(
         "Delete Client",
         "Update Phone",
         "Backup & Restore",
+        "Documentation",
         "Settings"
     ],
 )
@@ -1272,6 +1274,9 @@ elif navigation_bar == "Update Phone":
                         st.rerun()
             except Exception as e:
                 st.error(f"Update failed: {str(e)}")
+elif navigation_bar == "Documentation":
+    st.session_state["page"] = "documentation"
+    show_documentation()
 
 Show_up_client_Database()
 
