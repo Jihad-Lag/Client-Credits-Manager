@@ -87,21 +87,37 @@ df = st.session_state.df_current
 
 # -===== Functions : ( Save - Change - Restore & Create Backup - Warning Time & Show - Json Message - Historic Whatsapp Sender) =====-
 
+import re
+
 def validate_phone_number(phone):
-    """Validate phone number format and ensure it has country code"""
+    """
+    Validate phone number format and ensure it has country code.
+    
+    Args:
+        phone (str or int): Phone number to validate
+    
+    Returns:
+        tuple: (is_valid, formatted_phone)
+            - is_valid (bool): Whether the phone number is valid
+            - formatted_phone (str): Cleaned and formatted phone number
+    """
     try:
-       
+        # Convert to string and remove non-digit characters except '+'
         phone = str(phone)
         phone = re.sub(r'[^\d+]', '', phone)
 
+        # Ensure phone number starts with '+'
         if not phone.startswith('+'):
             phone = '+' + phone
 
+        # Remove leading zeros after the '+'
         phone = re.sub(r'^\+0+', '+', phone)
 
+        # Check minimum length
         if len(phone) < 10: 
             return False, phone
 
+        # Validate phone number pattern (9-15 digits after '+')
         pattern = re.compile(r'^\+\d{9,15}$')
         if not pattern.match(phone):
             return False, phone
@@ -111,19 +127,57 @@ def validate_phone_number(phone):
         return False, str(phone)
 
 def format_phone_number(phone):
-    """Format phone number for display"""
+    """
+    Format phone number for display with proper spacing.
+    
+    Args:
+        phone (str or int): Phone number to format
+    
+    Returns:
+        str: Formatted phone number
+    """
     try:
-
+        # Convert to string and remove non-digit characters
         phone = str(phone)
         digits = re.sub(r'\D', '', phone)
 
+        # Ensure phone number starts with '+'
         if not phone.startswith('+'):
             digits = '+' + digits
 
-        formatted = re.sub(r'(\+\d{1,3})(\d{3})(\d{3})(\d+)', r'\1 \2 \3 \4', digits)
+        # Format phone number with spaces
+        # Handles different length phone numbers gracefully
+        if len(digits) <= 12:
+            # Standard format: +xx xxx xxx xxxx
+            formatted = re.sub(r'(\+\d{1,3})(\d{3})(\d{3})(\d+)', r'\1 \2 \3 \4', digits)
+        else:
+            # For longer numbers: +xx xxxx xxxx xxxx
+            formatted = re.sub(r'(\+\d{1,3})(\d{4})(\d{4})(\d+)', r'\1 \2 \3 \4', digits)
+        
         return formatted
-    except:
+    except Exception as e:
         return str(phone)
+
+def add_plus_to_phone(phone):
+    """
+    Ensure phone number starts with a plus sign.
+    
+    Args:
+        phone (str or int): Phone number to modify
+    
+    Returns:
+        str: Phone number with plus sign
+    """
+    phone = str(phone)
+    
+    # Remove all non-digit characters
+    digits = re.sub(r'\D', '', phone)
+    
+    # Add plus sign if not present
+    if not phone.startswith('+'):
+        return '+' + digits
+    
+    return phone
 
 def json_message_add_amount(name_client, number_phone_client, amount_credits, updated_credit):
     try:
@@ -143,7 +197,7 @@ def json_message_add_amount(name_client, number_phone_client, amount_credits, up
 
         data[client_key] = {
             "number_phone": str(number_phone_client).replace(" ", ""),
-            "message": f"Dear Mr./Mrs. {name_client.strip()},\nWe inform you that your credit has been updated. An amount of {round(amount_credits,2)} was added, raising your current total to {round(updated_credit,2)}.\nPlease note this adjustment and respect agreed deadlines.\nFor any questions, feel free to contact us.\nDate & Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n",
+            "message": f"Dear Mr./Mrs. *{name_client.strip()}*,\nWe inform you that your credit has been updated. An amount of *{round(amount_credits,2)}* was added, raising your current total to *{round(updated_credit,2)}*.\nPlease note this adjustment and respect agreed deadlines.\nFor any questions, feel free to contact us.\nDate & Time: *{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n",
         }
 
         tmp_path = json_path.with_suffix('.tmp')
@@ -181,7 +235,7 @@ def json_message_sub_amount(name_client, number_phone_client, amount_credits, up
 
         data[client_key] = {
             "number_phone": str(number_phone_client).replace(" ", ""),
-            "message": f"Dear Mr./Mrs. {name_client.strip()},\nYour credit has been updated. An amount of {round(amount_credits,2)} was deducted, reducing your current total to {round(updated_credit,2)}.\nPlease review this adjustment and ensure compliance with agreed terms.\nContact us with any questions.\nDate & Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n",
+            "message": f"Dear Mr./Mrs. *{name_client.strip()}*,\nYour credit has been updated. An amount of *{round(amount_credits,2)}* was deducted, reducing your current total to *{round(updated_credit,2)}*.\nPlease review this adjustment and ensure compliance with agreed terms.\nContact us with any questions.\nDate & Time: *{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n",
         }
 
         tmp_path = json_path.with_suffix('.tmp')
@@ -219,7 +273,7 @@ def json_message_welcome(name_client, number_phone_client, amount_credits):
 
         data[client_key] = {
             "number_phone": str(number_phone_client).replace(" ", ""),
-            "message": f"Dear {name_client.strip()},\nWelcome to our credit system! Your account is now active with an initial credit of {round(amount_credits,2)}.\nYou can start using your credits immediately. For any assistance, contact our support team.\nDate & Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n",
+            "message": f"Dear *{name_client.strip()}*,\nWelcome to our credit system! Your account is now active with an initial credit of *{round(amount_credits,2)}*.\nYou can start using your credits immediately. For any assistance, contact our support team.\nDate & Time: *{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n",
         }
 
         tmp_path = json_path.with_suffix('.tmp')

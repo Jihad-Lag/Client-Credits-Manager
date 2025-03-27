@@ -8,7 +8,12 @@ from rich.console import Console
 from rich.panel import Panel
 import socket
 import pyautogui
-
+import keyboard
+import platform
+from win10toast import ToastNotifier
+import ctypes
+import subprocess  # Added missing import
+import os  # Added missing import
 
 json_path = Path("database/contact.json").absolute()
 
@@ -18,22 +23,49 @@ class WhatsAppSender:
         self.json_path = Path(json_path)
         self.message_queue = []
         self.failed_messages = []
-        self.wait_time = 15
-        self.tab_close_delay = 3
+        self.wait_time = 15 
+        self.tab_close_delay = 3  
+        self.typing_delay = 0.05
+        self.toaster = ToastNotifier() if platform.system() == 'Windows' else None
     
+    def show_notification(self, title, message, duration=5, is_error=False):
+        """Show system notification with different styles"""
+        try:
+            # Windows Toast Notification
+            if platform.system() == 'Windows' and self.toaster:
+                self.toaster.show_toast(
+                    title,
+                    message,
+                    duration=duration,
+                    icon_path=None,
+                    threaded=True
+                )
+            
+            # Fallback to message box
+            if platform.system() == 'Windows':
+                style = 0x10 | 0x1 if is_error else 0x40 | 0x1  # MB_ICONERROR or MB_ICONINFORMATION
+                ctypes.windll.user32.MessageBoxW(0, message, title, style)
+            elif platform.system() == 'Darwin':  # macOS
+                osascript = f'display notification "{message}" with title "{title}"'
+                subprocess.run(['osascript', '-e', osascript])
+            else:  # Linux
+                subprocess.run(['notify-send', title, message])
+                
+        except Exception as e:
+            self.console.print(f"[yellow]Could not show notification: {e}[/yellow]")
+
     def wait_for_exit(self):
-     """Wait for user input and then force-close the CMD window"""
-     self.console.print("\n[bold cyan]Press Enter two times to exit and close the CMD window...[/bold cyan]")
-     try:
-        input()  
-     except KeyboardInterrupt:
-        self.console.print("\n[red]Keyboard interrupt received. Exiting...[/red]")
- 
-     if sys.platform == 'win32':
-        import os
-        os.system("taskkill /f /im cmd.exe")
-     else:
-        sys.exit(0)  
+        """Wait for user input and then force-close the CMD window"""
+        self.console.print("\n[bold cyan]Press Enter to exit and close the CMD window...[/bold cyan]")
+        try:
+            input()  
+        except KeyboardInterrupt:
+            self.console.print("\n[red]Keyboard interrupt received. Exiting...[/red]")
+    
+        if sys.platform == 'win32':
+            os.system("taskkill /f /im cmd.exe")
+        else:
+            sys.exit(0)
 
     def diagnose_whatsapp_issues(self):
         """Basic system checks without WhatsApp Web verification"""
@@ -67,6 +99,7 @@ class WhatsAppSender:
         try:
             import pyautogui
             import pyperclip
+            import keyboard
             self.console.print("[green]✓ Required Libraries: Installed[/green]")
             return True
         except ImportError as e:
@@ -85,7 +118,7 @@ class WhatsAppSender:
                     
                     self.message_queue.append({
                         "client": client_key,
-                        "phone": phone,
+                        "phone": f"+{phone}",
                         "message": client_data["message"]
                     })
                 
@@ -115,23 +148,29 @@ class WhatsAppSender:
             return False
 
     def send_message_safely(self, phone, message):
-        """Core message sending functionality"""
+        """Core message sending functionality with improved timing"""
         try:
-            
-            try:
-                pyautogui.hotkey('ctrl', 'w')
-                time.sleep(2)
-            except:
-                pass
-
-            
             pywhatkit.sendwhatmsg_instantly(
                 phone_no=phone,
-                message=message,
+                message="",  
                 wait_time=self.wait_time,
-                tab_close=True,
-                close_time=self.tab_close_delay
+                tab_close=False,
+                close_time=0
             )
+            
+            time.sleep(5)
+            
+            for line in message.split('\n'):
+                pyautogui.write(line, interval=self.typing_delay)
+                pyautogui.hotkey('shift', 'enter')  
+            
+            pyautogui.press('enter')
+            time.sleep(6)
+            
+            pyautogui.hotkey('ctrl', 'w')
+            time.sleep(1)
+            pyautogui.press('enter')
+            time.sleep(1)
             
             return True
         
@@ -166,37 +205,67 @@ class WhatsAppSender:
             return False
 
     def run(self):
-        """Main execution flow"""
-        if not self.diagnose_whatsapp_issues():
-            self.wait_for_exit()
-            return
+        """Main execution flow with notifications"""
+        try:
+            if not self.diagnose_whatsapp_issues():
+                self.show_notification("WhatsApp Sender", "Initialization failed!", is_error=True)
+                self.wait_for_exit()
+                return
 
-        if not self.load_messages():
-            self.console.print("[yellow]No messages to send.[/yellow]")
-            self.wait_for_exit()
-            return
+            if not self.load_messages():
+                self.show_notification("WhatsApp Sender", "No messages to send", is_error=False)
+                self.console.print("[yellow]No messages to send.[/yellow]")
+                self.wait_for_exit()
+                return
 
-        for msg in self.message_queue:
-            result = self.debug_send_message(
-                msg['client'], 
-                msg['phone'], 
-                msg['message']
-            )
-            
-            if result:
-                self.delete_sent_message(msg['client'])
+            total_messages = len(self.message_queue)
+            self.show_notification("WhatsApp Sender", f"Starting to send {total_messages} messages")
+
+            for msg in self.message_queue:
+                result = self.debug_send_message(
+                    msg['client'], 
+                    msg['phone'], 
+                    msg['message']
+                )
+                
+                if result:
+                    self.delete_sent_message(msg['client'])
+                else:
+                    self.failed_messages.append(msg)
+                
+                time.sleep(5)
+
+            # Final summary notification
+            success_count = len(self.message_queue) - len(self.failed_messages)
+            if self.failed_messages:
+                summary_msg = f"Completed with {len(self.failed_messages)} failures\nSee console for details"
+                self.show_notification(
+                    "WhatsApp Sender - Completed",
+                    summary_msg,
+                    is_error=True
+                )
             else:
-                self.failed_messages.append(msg)
-            
-            time.sleep(10) 
+                self.show_notification(
+                    "WhatsApp Sender - Success",
+                    f"All {success_count} messages sent successfully!",
+                    is_error=False
+                )
 
-        
-        self.console.print("\n[bold]Sending Summary:[/bold]")
-        self.console.print(f"Total Messages: {len(self.message_queue)}")
-        self.console.print(f"[green]Successful: {len(self.message_queue) - len(self.failed_messages)}[/green]")
-        self.console.print(f"[red]Failed: {len(self.failed_messages)}[/red]")
-        
-        self.wait_for_exit()
+            self.console.print("\n[bold]Sending Summary:[/bold]")
+            self.console.print(f"Total Messages: {total_messages}")
+            self.console.print(f"[green]Successful: {success_count}[/green]")
+            self.console.print(f"[red]Failed: {len(self.failed_messages)}[/red]")
+            
+        except Exception as e:
+            error_msg = f"Critical error: {str(e)}"
+            self.show_notification("WhatsApp Sender - CRASHED", error_msg, is_error=True)
+            self.console.print(Panel.fit(
+                f"[bold red]Fatal Error[/bold red]\n{error_msg}\n"
+                f"Traceback:\n{traceback.format_exc()}",
+                title="❌ CRITICAL ERROR"
+            ))
+        finally:
+            self.wait_for_exit()
 
 def main():
     sender = WhatsAppSender()
