@@ -647,7 +647,7 @@ def add_client(name, phone, credits, status="Active"):
         "Status": [status]
     })
     json_message_welcome(name_client=name, number_phone_client=formatted_phone, amount_credits=credits)
-    st.session_state.df_current = pd.concat([st.session_state.df_current, new_client], ignore_index=True)
+    
     return st.session_state.df_current
 
 
