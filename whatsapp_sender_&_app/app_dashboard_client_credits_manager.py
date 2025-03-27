@@ -8,7 +8,6 @@ import re
 import os
 import json
 from pathlib import Path
-import pywhatkit as kit
 import subprocess
 from documentation_page import show_documentation
 
