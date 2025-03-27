@@ -1,0 +1,10 @@
+{
+    "client_1": {
+        "number_phone": "+212649991224",
+        "message": "Dear Jihad,\nWelcome to our credit system! Your account is now active with an initial credit of 1000.0.\nYou can start using your credits immediately. For any assistance, contact our support team.\nDate & Time: 2025-03-27 20:05:42\n"
+    },
+    "client_2": {
+        "number_phone": "+212649991224",
+        "message": "Dear Jihad,\nWelcome to our credit system! Your account is now active with an initial credit of 0.1.\nYou can start using your credits immediately. For any assistance, contact our support team.\nDate & Time: 2025-03-27 20:12:35\n"
+    }
+}

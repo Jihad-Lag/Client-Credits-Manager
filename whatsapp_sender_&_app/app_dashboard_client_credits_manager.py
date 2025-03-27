@@ -540,8 +540,7 @@ def manage_contact_queue():
 # -===== Functions : ( Verification Number Phone - Show Up Database - Statistics Columns - Check Low & Database Credits) =====-
 
 def Show_up_client_Database():
-    if "filtered_view" not in st.session_state:
-        st.markdown(
+    st.markdown(
     '''
     <h2 style="background-image: linear-gradient(to left, #FFF0BD, #FDAB9E); 
              -webkit-background-clip: text; 
@@ -552,18 +551,21 @@ def Show_up_client_Database():
     ''', 
     unsafe_allow_html=True
     )
-        df_current = st.session_state.df_current
-        if not df_current.empty:
-            df_display = df_current.copy()
-            if "Credits" in df_display.columns:
-                df_display["Credits"] = df_display["Credits"].apply(lambda x: f"${float(x):,.2f}")
-                if "Last_Updated" in df_display.columns:
-                    df_display["Last_Updated"] = pd.to_datetime(df_display["Last_Updated"]).dt.strftime('%Y-%m-%d %H:%M:%S')
-                if "Phone_Numbers" in df_display.columns:
-                    df_display["Phone_Numbers"] = df_display["Phone_Numbers"].apply(format_phone_number)
-                st.dataframe(df_display, width=1000, hide_index=True)
-            else:
-                st.info("No clients in the database. Add clients using the sidebar.")
+    
+    df_current = st.session_state.df_current
+    if not df_current.empty:
+        df_display = df_current.copy()
+        if "Credits" in df_display.columns:
+            df_display["Credits"] = df_display["Credits"].apply(lambda x: f"${float(x):,.2f}")
+            if "Last_Updated" in df_display.columns:
+                df_display["Last_Updated"] = pd.to_datetime(df_display["Last_Updated"]).dt.strftime('%Y-%m-%d %H:%M:%S')
+            if "Phone_Numbers" in df_display.columns:
+                df_display["Phone_Numbers"] = df_display["Phone_Numbers"].apply(format_phone_number)
+            st.dataframe(df_display, width=1000, hide_index=True)
+        else:
+            st.info("No clients in the database. Add clients using the sidebar.")
+    else:
+        st.info("No clients in the database. Add clients using the sidebar.")
 
 def show_statistics():
     """Display database statistics"""
@@ -646,6 +648,11 @@ def add_client(name, phone, credits, status="Active"):
         "Last_Updated": [datetime.now()],
         "Status": [status]
     })
+    
+    # Add the new client to the current DataFrame
+    st.session_state.df_current = pd.concat([st.session_state.df_current, new_client], ignore_index=True)
+    
+    # Send welcome message
     json_message_welcome(name_client=name, number_phone_client=formatted_phone, amount_credits=credits)
     
     return st.session_state.df_current
