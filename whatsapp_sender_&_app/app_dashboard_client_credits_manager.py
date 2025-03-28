@@ -102,22 +102,20 @@ def validate_phone_number(phone):
             - formatted_phone (str): Cleaned and formatted phone number
     """
     try:
-        # Convert to string and remove non-digit characters except '+'
+
         phone = str(phone)
         phone = re.sub(r'[^\d+]', '', phone)
 
-        # Ensure phone number starts with '+'
+
         if not phone.startswith('+'):
             phone = '+' + phone
 
-        # Remove leading zeros after the '+'
         phone = re.sub(r'^\+0+', '+', phone)
 
-        # Check minimum length
+
         if len(phone) < 10: 
             return False, phone
 
-        # Validate phone number pattern (9-15 digits after '+')
         pattern = re.compile(r'^\+\d{9,15}$')
         if not pattern.match(phone):
             return False, phone
@@ -137,21 +135,19 @@ def format_phone_number(phone):
         str: Formatted phone number
     """
     try:
-        # Convert to string and remove non-digit characters
         phone = str(phone)
         digits = re.sub(r'\D', '', phone)
 
-        # Ensure phone number starts with '+'
+       
         if not phone.startswith('+'):
             digits = '+' + digits
 
-        # Format phone number with spaces
-        # Handles different length phone numbers gracefully
+       
         if len(digits) <= 12:
-            # Standard format: +xx xxx xxx xxxx
+            
             formatted = re.sub(r'(\+\d{1,3})(\d{3})(\d{3})(\d+)', r'\1 \2 \3 \4', digits)
         else:
-            # For longer numbers: +xx xxxx xxxx xxxx
+            
             formatted = re.sub(r'(\+\d{1,3})(\d{4})(\d{4})(\d+)', r'\1 \2 \3 \4', digits)
         
         return formatted
@@ -170,10 +166,10 @@ def add_plus_to_phone(phone):
     """
     phone = str(phone)
     
-    # Remove all non-digit characters
+    
     digits = re.sub(r'\D', '', phone)
     
-    # Add plus sign if not present
+    
     if not phone.startswith('+'):
         return '+' + digits
     
@@ -912,7 +908,7 @@ def modify_page():
             st.sidebar.success(f"Credits added: {round(amount, 2)}")
             json_message_add_amount(name_client=selected_client,number_phone_client=number_phone_client,amount_credits=amount,updated_credit=updated_credits)
             save_changes_to_file()
-            time.sleep(10)
+            time.sleep(3)
             st.rerun()
 
         elif operation == "Subtract":
@@ -925,7 +921,7 @@ def modify_page():
             json_message_sub_amount(name_client=selected_client,number_phone_client=number_phone_client,amount_credits=amount,updated_credit=updated_credits)
             save_changes_to_file()
             st.sidebar.write(f"New credit balance: {round(updated_credits, 2)}")
-            time.sleep(5)
+            time.sleep(3)
             st.rerun()
 
 
